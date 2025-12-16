@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 
 const AGENT_OS_ENDPOINT =
     process.env.AGENT_OS_ENDPOINT || 'http://localhost:7777'
+const OS_SECURITY_KEY = process.env.OS_SECURITY_KEY
 
 export async function POST(request: NextRequest) {
     // Skip auth check in local development
@@ -27,12 +28,14 @@ export async function POST(request: NextRequest) {
         // The runUrl from client will be relative path like /agents/agent_id/runs
         const internalUrl = `${AGENT_OS_ENDPOINT}${runUrl}`
 
+        const headers: HeadersInit = {}
+        if (OS_SECURITY_KEY) {
+            headers['Authorization'] = `Bearer ${OS_SECURITY_KEY}`
+        }
+
         const response = await fetch(internalUrl, {
             method: 'POST',
-            headers: {
-                // Forward auth token if needed by Agent OS, or just rely on internal network trust
-                // 'Authorization': `Bearer ${session.accessToken}`, 
-            },
+            headers,
             body: formData,
         })
 
